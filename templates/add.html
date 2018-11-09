@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>>>CASE FILES</h1>
+        <form action="/add" method="post">
+            <label>
+                NEW CASE REPORT:
+                <input type="text" name="case_title" style="text-transform:uppercase;" placeholder="CASE TITLE" autofocus>
+                <textarea name="report" rows="4" cols="50" placeholder="CASE DETAILS"></textarea>
+            </label>
+            <input type="Submit" value="Add Report">
+        </form>
+        <hr>
+{% endblock %}

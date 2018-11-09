@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>>>CASE FILES</h1>
+        <hr>
+        {% if reports|length == 0 %}
+        <p>No reports yet</p>
+        {% else %}
+            <!-- {% for item in reports %}
+                <details>
+                    <summary>{{item.title}}</summary>
+                    <ul>
+                    <li>{{item.report}}</li>
+                    </ul>
+                </details>
+            {% endfor %} -->
+
+<!-- ALTERNATIVELY: SETTING UP THE LIST OF BLOGS AS LINKS TO SINGLE.HTML -->
+
+            {% for item in reports %}
+                <a href="./display?id={{item.id}}">{{item.title}}</a>
+                <br>&emsp;"{{item.report[0:15]}}..."<br>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <hr>
+{% endblock %}
