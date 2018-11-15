@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>>>AGENT FILES</h1>
+        <hr>
+        {% if reports|length == 0 %}
+        <p>No reports yet</p>
+        {% else %}
+            {% for item in reports %}
+                <a href="./display?id={{item.id}}">{{item.title}}</a>
+                <br>&emsp;"{{item.report[0:15]}}..."<br>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <hr>
+{% endblock %}

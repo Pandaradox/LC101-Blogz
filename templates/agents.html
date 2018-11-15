@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>>>AGENTS</h1>
+    <hr>
+    {% for item in agents %}
+        <h4><a href="./profile?user={{item.codename}}">{{item.codename}}</a></h4>
+    {% endfor %}
+    <hr>
+{% endblock %}

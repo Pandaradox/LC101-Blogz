@@ -16,7 +16,7 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     report = db.Column(db.String(2000))
-    agent = db.Column(db.Integer, db.ForeignKey('agent.id'))
+    agent = db.Column(db.String(120), db.ForeignKey('agent.codename'))
 
     def __init__(self, title, report, agent):
         self.title = title
@@ -26,28 +26,35 @@ class Report(db.Model):
 class Agent(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True)
+    codename = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
     report = "db.relationship('Report', backref='agent')"
 
-    def __init__(self, email, password):
-        self.email = email
+    def __init__(self, codename, password):
+        self.codename = codename
         self.password = password
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    session["email"]="jacardarella@gmail.com"
-    owner = Agent.query.filter_by(email=session["email"]).first()
-    # if request.method == "POST":
-    #     title = request.form["case_title"]
-    #     report = str(request.form["report"])
-    #     new_report = Report(title,report,owner.id)
-    #     db.session.add(new_report)
-    #     db.session.commit()
-    reports = Report.query.filter_by(agent=owner.id).all()
-    # done_missions = Mission.query.filter_by(done=True,owner=owner.id).all()
+    reports = Report.query.all()
     return render_template('files.html',reports=reports)
+
+@app.route("/users", methods=["GET"])
+def agents():
+    agents = Agent.query.all()
+    return render_template('agents.html',agents=agents)
+
+@app.route("/profile", methods=["GET"])
+def profile():
+    user = request.args.get("user")
+    reports = Report.query.filter_by(agent=user).all()
+    return render_template("files.html",reports=reports)
+
+@app.route("/display", methods=["GET"])
+def display():
+    id = request.args.get("id")
+    report = Report.query.filter_by(id=id).first()
+    return render_template("single.html", title=report.title, user=report.agent, report=report.report)
 
 @app.route("/add", methods=["GET","POST"])
 def add_report():
@@ -60,78 +67,69 @@ def add_report():
         if len((report.strip())) == 0:
             flash("ERROR: REPORT REQUIRED","error")
             return render_template("add.html")
-        new_report = Report(title,report,(Agent.query.filter_by(email=session["email"]).first()).id)
+        new_report = Report(title,report,session["codename"])
         db.session.add(new_report)
         db.session.commit()
         return redirect("/display?id={}".format(new_report.id))
     else:
         return render_template("add.html")
 
-@app.route("/display", methods=["GET"])
-def display():
-    id = request.args.get("id")
-    report = Report.query.filter_by(id=id).first()
-    return render_template("single.html", title=report.title, report=report.report)
+# LOGIN HANDLERS----------------------------------------------------------------------------------
 
-# @app.route('/delete-mission', methods=['POST'])
-# def delete_task():
-#
-#     mission_id = int(request.form['mission-id'])
-#     mission = Mission.query.get(mission_id)
-#     mission.done = True
-#     db.session.add(mission)
-#     db.session.commit()
-#
-#     return redirect('/')
-#
-# @app.before_request
-# def require_login():
-#     allowed_routes = ['login', 'register']
-#     if request.endpoint not in allowed_routes and 'email' not in session:
-#         return render_template("login.html", Title="Agent Terminal")
-#
-# @app.route('/login', methods=["GET","POST"])
-# def login():
-#     if request.method == "POST":
-#         email = (request.form["email"]).lower()
-#         password = request.form["pass1"]
-#         agent = Agent.query.filter_by(email=email).first()
-#         if agent and agent.password == password:
-#             session['email'] = email
-#             flash("ACCESS GRANTED","success")
-#             return redirect("/")
-#         else:
-#             flash('ACCESS DENIED',"error")
-#             return redirect("/login")
-#     else:
-#         return render_template("login.html", Title="Agent Terminal")
-#
-# @app.route('/logout', methods=['GET'])
-# def logout():
-#     del session['email']
-#     return redirect('/')
-#
-# @app.route("/register", methods=["GET","POST"])
-# def register():
-#     if request.method == "POST":
-#         email = (request.form["email"]).lower()
-#         password = request.form["pass1"]
-#         passwordv = request.form["pass2"]
-#         if password != passwordv or (len(password)<3 or len(password) >20):
-#             flash("ERROR: CODEPHRASE", "error")
-#             return render_template("register.html", Title="Agent Registration")
-#         existing_agent = Agent.query.filter_by(email=email).first()
-#         if not existing_agent:
-#             new_agent = Agent(email,password)
-#             db.session.add(new_agent)
-#             db.session.commit()
-#             session['email'] = email
-#             flash("Agent Accepted","success")
-#             return render_template("login.html", Title="Agent Terminal", email=email)
-#         else:
-#             flash("ERROR: DOUBLE AGENT","error")
-#             return render_template("register.html", Title="Agent Registration")
-#     return render_template("register.html", Title="Agent Registration")
+@app.before_request
+def require_login():
+    allowed_routes = ['login','register','index','agents','profile','display']
+    if request.endpoint not in allowed_routes and 'codename' not in session:
+        return render_template("login.html")
+
+@app.route('/login', methods=["GET","POST"])
+def login():
+    if request.method == "POST":
+        codename = (request.form["codename"]).lower()
+        password = request.form["pass1"]
+        agent = Agent.query.filter_by(codename=codename).first()
+        if agent and agent.password == password:
+            session['codename'] = codename
+            flash("ACCESS GRANTED","success")
+            return redirect("/add")
+        elif agent and agent.password != password:
+            flash("ERROR: CODEPHRASE","error")
+            return redirect("/login")
+        else:
+            flash("ERROR: AGENT DOESN'T EXIST","error")
+            return redirect("/login")
+    else:
+        return render_template("login.html")
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    del session['codename']
+    return redirect('/')
+
+@app.route("/register", methods=["GET","POST"])
+def register():
+    if request.method == "POST":
+        codename = (request.form["codename"]).lower()
+        if len(codename)<3 or len(codename)>20:
+            flash("ERROR: CODENAME", "error")
+            return render_template("register.html")
+        password = request.form["pass1"]
+        passwordv = request.form["pass2"]
+        if password != passwordv or (len(password)<3 or len(password)>20):
+            flash("ERROR: CODEPHRASE", "error")
+            return render_template("register.html")
+        existing_agent = Agent.query.filter_by(codename=codename).first()
+        if not existing_agent:
+            new_agent = Agent(codename,password)
+            db.session.add(new_agent)
+            db.session.commit()
+            session['codename'] = codename
+            flash("AGENT ACCEPTED","success")
+            return render_template("login.html", codename=codename)
+        else:
+            flash("ERROR: DOUBLE AGENT","error")
+            return render_template("register.html")
+    return render_template("register.html")
 
 if __name__ == "__main__":
     app.run()

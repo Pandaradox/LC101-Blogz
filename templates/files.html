@@ -19,6 +19,7 @@
             {% for item in reports %}
                 <a href="./display?id={{item.id}}">{{item.title}}</a>
                 <br>&emsp;"{{item.report[0:15]}}..."<br>
+                &emsp;&emsp;Written by: <a href="./profile?user={{item.agent}}" style="text-transform:uppercase">{{item.agent}}</a><br>
             {% endfor %}
         </ul>
         {% endif %}

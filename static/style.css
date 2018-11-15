@@ -341,8 +341,8 @@ template {
 }
 /* ~~~~~~~~~~~~~~~~~~~~John's Stuff~~~~~~~~~~~~~~~~~~~~ */
 * {
-    background-color: #0f0f00;
-    color: #ff0;
+    background-color: #0f000f;
+    color: #FF00FF;
     font-family: 'Courier New', Courier, monospace;
     margin: auto;
     max-width: 50vw;
