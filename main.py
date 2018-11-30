@@ -28,7 +28,7 @@ class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codename = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
-    report = "db.relationship('Report', backref='agent')"
+    report = db.relationship('Report', backref='Agent')
 
     def __init__(self, codename, password):
         self.codename = codename
